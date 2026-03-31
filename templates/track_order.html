@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% block title %}Track Order #{{ order['id'] }} | FurniWood{% endblock %}
+
+{% block content %}
+<style>
+    .track-timeline {
+        position: relative;
+        padding: 40px 0;
+    }
+    .track-timeline::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 20px;
+        height: 100%;
+        width: 4px;
+        background: #e9ecef;
+        border-radius: 2px;
+    }
+    @media (min-width: 768px) {
+        .track-timeline::before {
+            left: 50%;
+            margin-left: -2px;
+        }
+    }
+    .timeline-item {
+        margin-bottom: 40px;
+        position: relative;
+    }
+    .timeline-dot {
+        position: absolute;
+        left: 10px;
+        width: 24px;
+        height: 24px;
+        background: #fff;
+        border: 4px solid #dee2e6;
+        border-radius: 50%;
+        z-index: 2;
+    }
+    @media (min-width: 768px) {
+        .timeline-dot {
+            left: 50%;
+            margin-left: -12px;
+        }
+    }
+    .timeline-item.active .timeline-dot {
+        border-color: var(--accent-wood);
+        background: var(--accent-wood);
+        box-shadow: 0 0 0 5px rgba(141, 110, 99, 0.2);
+    }
+    .timeline-item.completed .timeline-dot {
+        border-color: var(--accent-wood);
+        background: var(--accent-wood);
+    }
+    .timeline-content {
+        padding-left: 50px;
+    }
+    @media (min-width: 768px) {
+        .timeline-content {
+            padding-left: 0;
+            width: 45%;
+        }
+        .timeline-item:nth-child(even) .timeline-content {
+            margin-left: 55%;
+            text-align: left;
+        }
+        .timeline-item:nth-child(odd) .timeline-content {
+            text-align: right;
+        }
+    }
+    .progress-track {
+        height: 8px;
+        background: #e9ecef;
+        border-radius: 4px;
+        margin: 30px 0;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        background: var(--accent-wood);
+        transition: width 1s ease-in-out;
+    }
+</style>
+
+<div class="container py-5">
+    <!-- Header -->
+    <div class="mb-5 text-center" data-aos="fade-up">
+        <h2 class="fw-bold mb-2">Track Your Order</h2>
+        <p class="text-muted">Order ID: <span class="text-wood fw-bold">#{{ order['id'] }}</span></p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card card-premium p-4 p-md-5 mb-5" data-aos="fade-up">
+                
+                <!-- Quick Info -->
+                <div class="row g-4 mb-4 text-center text-md-start">
+                    <div class="col-md-3">
+                        <small class="text-muted text-uppercase fw-bold d-block mb-1" style="letter-spacing:1px;">Ordered On</small>
+                        <span class="fw-bold">{{ order['order_date'].strftime('%d %b %Y') if order['order_date'].strftime else order['order_date'] }}</span>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted text-uppercase fw-bold d-block mb-1" style="letter-spacing:1px;">Status</small>
+                        <span class="badge {% if order['status_id'] == 4 %}bg-success{% else %}bg-primary{% endif %} px-3 py-2 rounded-pill">
+                            {{ order['status_name'] }}
+                        </span>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <small class="text-muted text-uppercase fw-bold d-block mb-1" style="letter-spacing:1px;">Shipping To</small>
+                        <span class="fw-medium">{{ order['address'] }}</span>
+                    </div>
+                </div>
+
+                <hr class="my-4 opacity-10">
+
+                <!-- Progress Bar -->
+                <div class="progress-track">
+                    <div class="progress-fill" style="width: {{ progress }}%;"></div>
+                </div>
+
+                <!-- Vertical Timeline -->
+                <div class="track-timeline">
+                    {% for status in statuses %}
+                        {% set is_completed = order['status_id'] >= status['id'] %}
+                        {% set is_active = order['status_id'] == status['id'] %}
+                        
+                        <div class="timeline-item {% if is_completed %}completed{% endif %} {% if is_active %}active{% endif %}" data-aos="fade-up">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <h6 class="fw-bold mb-1 {% if is_completed %}text-wood{% else %}text-muted{% endif %}">{{ status['status_name'] }}</h6>
+                                <p class="small mb-0 text-muted">
+                                    {% if status['id'] == 1 %}Your order has been received and is being processed.{% endif %}
+                                    {% if status['id'] == 2 %}Your items are packed and ready for shipping.{% endif %}
+                                    {% if status['id'] == 3 %}Technicians are on their way with your furniture.{% endif %}
+                                    {% if status['id'] == 4 %}Furniture has been successfully delivered and installed.{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-5 text-center">
+                    <a href="{{ url_for('store_routes.my_account') }}" class="btn btn-wood-outline px-4">
+                        <i class="fas fa-arrow-left me-2"></i>Back to My Orders
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

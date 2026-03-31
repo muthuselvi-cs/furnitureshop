@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- PRODUCT ZOOM STYLES -->
+<style>
+.zoom-container {
+    position: relative;
+    overflow: hidden;
+    cursor: zoom-in;
+    border-radius: var(--radius);
+}
+.zoom-container img {
+    transition: transform 0.3s ease;
+}
+.zoom-container:hover img {
+    transform: scale(1.5);
+}
+.zoom-container:active img {
+    transform: scale(2);
+}
+
+.related-product-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+.related-product-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+</style>
+
+{% if not product %}
+<!-- Product Not Found -->
+<div class="container py-5 text-center" data-aos="fade-up">
+    <div class="mb-4">
+        <i class="fas fa-triangle-exclamation fa-4x" style="color:var(--accent-wood);"></i>
+    </div>
+    <h2 class="fw-bold">Product Not Found</h2>
+    <p class="text-muted mb-4">The furniture piece you are looking for does not exist or has been removed.</p>
+    <a href="{{ url_for('store_routes.shop') }}" class="btn btn-wood px-5">Return to Shop</a>
+</div>
+
+{% else %}
+
+<!-- Breadcrumb -->
+<div class="bg-white border-bottom py-3">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('store_routes.index') }}">Home</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('store_routes.shop') }}">Shop</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    {{ product['name'] }}
+                </li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Product Detail -->
+<div class="container py-5">
+    <div class="row g-5 align-items-start">
+
+        <!-- PRODUCT IMAGE -->
+        <div class="col-lg-7" data-aos="fade-right">
+            <div class="card-premium p-2 position-relative">
+                <div class="zoom-container">
+                    {% if product['image'] %}
+                        <img src="{{ product['image'] if product['image'].startswith('http') else url_for('static', filename=product['image']) }}"
+                             class="img-fluid w-100 d-block"
+                             id="mainImage"
+                             alt="{{ product['name'] }}"
+                             style="border-radius:calc(var(--radius) - 4px); max-height:520px; object-fit:cover;"
+                             onerror="this.src='https://placehold.co/800x520/efebe9/8d6e63?text=Furniture';">
+                    {% else %}
+                        <img src="https://placehold.co/800x520/efebe9/8d6e63?text=Furniture"
+                             class="img-fluid w-100 d-block"
+                             style="border-radius:calc(var(--radius) - 4px);">
+                    {% endif %}
+                </div>
+
+                <!-- Heart Icon Overlay -->
+                <button class="wishlist-btn {% if in_wishlist %}active{% endif %}" 
+                        onclick="toggleWishlist({{ product['id'] }}, this)" 
+                        title="Wishlist" 
+                        style="top:25px; right:25px; width:44px; height:44px; z-index:10;">
+                    <i class="{% if in_wishlist %}fas fa-heart text-danger{% else %}far fa-heart{% endif %}" style="font-size:1.3rem;"></i>
+                </button>
+            </div>
+            
+            <p class="text-center text-muted small mt-2"><i class="fas fa-search-plus me-1"></i> Hover to zoom, click for deeper view</p>
+        </div>
+
+        <!-- PRODUCT INFO -->
+        <div class="col-lg-5" data-aos="fade-left">
+            <div class="d-flex flex-column h-100">
+
+                <!-- Category tag & Rating -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    {% if product['cat_name'] %}
+                    <p class="product-category-tag fs-xs mb-0">{{ product['cat_name'] }}</p>
+                    {% endif %}
+                    
+                    <div class="text-accent small">
+                        {% if product['avg_rating'] %}
+                            {% for i in range(5) %}
+                                <i class="{% if i < (product['avg_rating']|int) %}fas{% else %}far{% endif %} fa-star"></i>
+                            {% endfor %}
+                            <span class="ms-1 fw-bold text-wood">{{ "%.1f"|format(product['avg_rating']|float) }}</span>
+                            <span class="text-muted text-decoration-none small ms-1">({{ product['review_count'] }} reviews)</span>
+                        {% else %}
+                            <span class="text-muted smaller">No ratings yet</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <h1 class="fw-bold mb-3" style="font-size:clamp(1.5rem,4vw,2.2rem);color:var(--primary-wood);">
+                    {{ product['name'] }}
+                </h1>
+
+                <!-- Price + Stock -->
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+                    <span class="fw-bold" style="font-size:2rem;color:var(--accent-wood);">
+                        Rs {{ "%.2f"|format(product['price']|float) }}
+                    </span>
+                    {% if in_stock %}
+                        {% if product['stock'] < 5 %}
+                            <span class="fw-bold small" style="color:#d32f2f;">
+                                <i class="fas fa-triangle-exclamation me-1"></i>Hurry! Few items left
+                            </span>
+                        {% elif product['stock'] <= 10 %}
+                            <span class="small" style="color:#ef6c00; font-weight:600;">
+                                <i class="fas fa-fire me-1"></i>Selling Fast
+                            </span>
+                        {% else %}
+                            <span class="badge badge-paid px-3 py-2 rounded-pill">
+                                <i class="fas fa-circle-check me-1"></i>In Stock
+                            </span>
+                        {% endif %}
+                    {% else %}
+                    <span class="badge px-3 py-2 rounded-pill" style="background:#ffebee;color:#c62828;border:1px solid #ef9a9a;">
+                        <i class="fas fa-circle-xmark me-1"></i>Out of Stock
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Description -->
+                <div class="mb-4 p-4 rounded-3" style="background:var(--cream);border-left:4px solid var(--accent-wood);">
+                    <h6 class="text-uppercase fw-bold mb-2" style="font-size:.72rem;letter-spacing:1px;color:var(--text-muted);">
+                        Product Description
+                    </h6>
+                    <p class="mb-0" style="color:var(--secondary-wood);line-height:1.8;font-size:.95rem;">
+                        {{ product['description'] | replace('\n', '<br>') | safe }}
+                    </p>
+                </div>
+
+                <!-- Add to Cart -->
+                <div class="p-4 rounded-3 border" style="background:var(--white);">
+                    <form action="{{ url_for('cart_routes.cart_action') }}" method="POST">
+                        <input type="hidden" name="action" value="add">
+                        <input type="hidden" name="product_id" value="{{ product['id'] }}">
+
+                        <div class="d-flex align-items-center gap-4 mb-4">
+                            <div>
+                                <label class="form-label mb-2">QUANTITY</label>
+                                <div class="qty-control">
+                                    <button type="button" class="qty-btn" onclick="updateQty(-1)">−</button>
+                                    <input type="number" id="qtyInput" name="quantity"
+                                           class="qty-input" value="1" min="1"
+                                           max="{{ product['stock'] }}">
+                                    <button type="button" class="qty-btn" onclick="updateQty(1)">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if in_stock %}
+                        <button type="submit" class="btn btn-wood btn-lg w-100 mb-2">
+                            <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                        </button>
+                        <button type="submit" name="buy_now" value="1" class="btn btn-lg w-100 mb-3 text-white" 
+                                style="background:var(--primary-wood);border:none;border-radius:var(--radius-sm);font-weight:600;font-size:0.88rem;letter-spacing:0.5px;text-transform:uppercase;padding:11px 26px;transition:var(--transition);box-shadow:0 4px 16px rgba(0,0,0,0.15);">
+                            <i class="fas fa-bolt me-2"></i>Buy Now
+                        </button>
+                        {% else %}
+                        <button type="button" class="btn btn-secondary w-100 btn-lg mb-3" disabled>
+                            <i class="fas fa-ban me-2"></i>Out of Stock
+                        </button>
+                        {% endif %}
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- REVIEWS SECTION -->
+    <div class="row mt-5 pt-5 border-top">
+        <div class="col-lg-6 mb-5" data-aos="fade-up">
+            <h4 class="fw-bold mb-4">Customer Reviews</h4>
+            
+            {% if not reviews %}
+                <div class="p-5 text-center bg-light rounded-4">
+                    <i class="far fa-comments fa-3x mb-3 text-muted"></i>
+                    <p class="text-muted">No reviews yet. Be the first to share your thoughts!</p>
+                </div>
+            {% else %}
+                <div class="review-list">
+                    {% for r in reviews %}
+                    <div class="card border-0 shadow-none mb-4 pb-4 border-bottom">
+                        <div class="d-flex justify-content-between mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="bg-wood-light text-wood fw-bold rounded-circle d-flex align-items-center justify-content-center" style="width:40px;height:40px;font-size:0.8rem;">
+                                    {{ r.user_name[0]|upper }}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">{{ r.user_name }}</h6>
+                                    <span class="smaller text-muted">{{ r.created_at.strftime('%b %d, %Y') }}</span>
+                                </div>
+                            </div>
+                            <div class="text-accent small">
+                                {% for i in range(5) %}
+                                    <i class="{% if i < r.rating %}fas{% else %}far{% endif %} fa-star"></i>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <p class="mb-0 text-secondary" style="font-size:0.95rem;">{{ r.comment }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-5 offset-lg-1" data-aos="fade-up" data-aos-delay="100">
+            <div class="p-4 rounded-4 bg-cream text-center">
+                <i class="fas fa-certificate text-accent fa-2x mb-3"></i>
+                <h5 class="fw-bold">Verified Customer Reviews</h5>
+                <p class="text-muted small mb-0">At FurniWood, we only show feedback from customers who have purchased and received this product, ensuring the highest level of authenticity.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RELATED PRODUCTS -->
+    {% if related_products %}
+    <div class="mt-5 pt-5 border-top" data-aos="fade-up">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold m-0">You May Also Like</h4>
+            <a href="{{ url_for('store_routes.shop', category=product['category_id']) }}" class="text-wood fw-bold text-decoration-none small">
+                View Category <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+        
+        <div class="row g-4">
+            {% for rp in related_products %}
+            <div class="col-6 col-md-3">
+                <div class="card related-product-card border-0">
+                    <a href="{{ url_for('store_routes.product', id=rp['id']) }}" class="text-decoration-none">
+                        <div class="position-relative overflow-hidden mb-3" style="aspect-ratio:1; border-radius:var(--radius);">
+                            <img src="{{ rp['image'] if rp['image'].startswith('http') else url_for('static', filename=rp['image']) }}" 
+                                 class="w-100 h-100 object-fit-cover" 
+                                 alt="{{ rp['name'] }}"
+                                 onerror="this.src='https://placehold.co/400x400/efebe9/8d6e63?text=Furniture';">
+                        </div>
+                        <h6 class="text-dark fw-bold mb-1 text-truncate">{{ rp['name'] }}</h6>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-accent fw-bold small">Rs {{ "%.2f"|format(rp['price']|float) }}</span>
+                            <div class="text-accent smaller">
+                                <i class="fas fa-star" style="font-size:0.7rem;"></i>
+                                <span class="text-muted">{{ "%.1f"|format(rp['avg_rating']|float) if rp['avg_rating'] else "0.0" }}</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% block scripts %}
+<script>
+function updateQty(change) {
+    const input = document.getElementById('qtyInput');
+    let val = parseInt(input.value) + change;
+    if (val < 1) val = 1;
+    let max = {{ product['stock'] }};
+    if (val > max) val = max;
+    input.value = val;
+}
+
+// Product Zoom Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.querySelector('.zoom-container');
+    const image = document.getElementById('mainImage');
+
+    if (container && image) {
+        container.addEventListener('mousemove', function(e) {
+            const x = e.clientX - e.target.offsetLeft;
+            const y = e.clientY - e.target.offsetTop;
+            
+            const mX = (e.offsetX / container.offsetWidth) * 100;
+            const mY = (e.offsetY / container.offsetHeight) * 100;
+
+            image.style.transformOrigin = `${mX}% ${mY}%`;
+        });
+
+        container.addEventListener('mouseleave', function() {
+            image.style.transformOrigin = 'center center';
+        });
+    }
+});
+</script>
+{% endblock %}
+
+{% endif %}
+{% endblock %}

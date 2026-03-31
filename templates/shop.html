@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- PAGE HEADER -->
+<div class="page-header" style="margin-top:0;">
+    <div class="container">
+        <div data-aos="fade-right">
+            <h1 class="display-5 fw-bold mb-2">Our Collection</h1>
+            <p class="mb-0" style="color:rgba(255,255,255,.7);">
+                Browse through our premium selection of wooden furniture
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-4">
+
+        <!-- ══ SIDEBAR FILTER ══ -->
+        <div class="col-lg-3">
+            <div class="filter-sidebar" data-aos="fade-right">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0"><i class="fas fa-sliders me-2 text-accent"></i>Refine Search</h5>
+                    <a href="{{ url_for('store_routes.shop') }}" class="text-accent small fw-bold text-decoration-none">Clear</a>
+                </div>
+
+                <form id="filterForm" action="{{ url_for('store_routes.shop') }}" method="GET">
+                    <!-- Keyword Search -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Keyword</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-end-0 bg-transparent">
+                                <i class="fas fa-magnifying-glass text-muted small"></i>
+                            </span>
+                            <input type="text" name="search" id="searchInput"
+                                   class="form-control border-start-0 ps-0 shadow-none"
+                                   value="{{ search_query | e }}"
+                                   placeholder="Search furniture…">
+                        </div>
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Category</label>
+                        <select name="category" class="form-select shadow-none border-wood">
+                            <option value="">All Collections</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat['id'] }}"
+                                {% if category_id == cat['id']|string %}selected{% endif %}>
+                                {{ cat['name'] }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Price Range -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Price Range (Rs)</label>
+                        <div class="d-flex gap-2">
+                            <input type="number" name="min_price" class="form-control form-control-sm shadow-none border-wood" 
+                                   placeholder="Min" value="{{ min_price }}">
+                            <input type="number" name="max_price" class="form-control form-control-sm shadow-none border-wood" 
+                                   placeholder="Max" value="{{ max_price }}">
+                        </div>
+                    </div>
+
+                    <!-- Availability -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase d-block mb-2">Availability</label>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="radio" name="availability" id="avail_all" value="all" 
+                                   {% if availability == 'all' or not availability %}checked{% endif %}>
+                            <label class="form-check-label small" for="avail_all">All Items</label>
+                        </div>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="radio" name="availability" id="avail_stock" value="in_stock"
+                                   {% if availability == 'in_stock' %}checked{% endif %}>
+                            <label class="form-check-label small" for="avail_stock">In Stock only</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="availability" id="avail_out" value="out_of_stock"
+                                   {% if availability == 'out_of_stock' %}checked{% endif %}>
+                            <label class="form-check-label small" for="avail_out">Out of Stock</label>
+                        </div>
+                    </div>
+
+                    <div class="d-grid pt-2">
+                        <button type="submit" class="btn btn-wood">
+                            <i class="fas fa-filter me-1"></i>Apply Filters
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ══ PRODUCT GRID ══ -->
+        <div class="col-lg-9">
+            {% if not products %}
+            <div class="text-center py-5" data-aos="fade-up">
+                <div class="mb-4">
+                    <i class="fas fa-search-minus fa-4xl" style="color:var(--light-wood); font-size: 4rem;"></i>
+                </div>
+                <h3 class="fw-bold">No matches found</h3>
+                <p class="text-muted">Oops! We couldn't find anything matching your filters.</p>
+                <a href="{{ url_for('store_routes.shop') }}" class="btn btn-wood-outline mt-2 px-4">Clear All Filters</a>
+            </div>
+            {% else %}
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <p class="mb-0 text-muted small">
+                    Showing <strong>{{ products|length }}</strong> premium product(s)
+                </p>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-wood-outline dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Sort By: 
+                        {% if sort_by == 'price_low' %}
+                            Price: Low to High
+                        {% elif sort_by == 'price_high' %}
+                            Price: High to Low
+                        {% else %}
+                            Newest First
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                        <li><a class="dropdown-item small {% if sort_by == 'newest' or not sort_by %}active{% endif %}" 
+                               href="{{ url_for('store_routes.shop', sort='newest', category=category_id, search=search_query, min_price=min_price, max_price=max_price, availability=availability) }}">
+                               Newest First
+                            </a></li>
+                        <li><a class="dropdown-item small {% if sort_by == 'price_low' %}active{% endif %}" 
+                               href="{{ url_for('store_routes.shop', sort='price_low', category=category_id, search=search_query, min_price=min_price, max_price=max_price, availability=availability) }}">
+                               Price: Low to High
+                            </a></li>
+                        <li><a class="dropdown-item small {% if sort_by == 'price_high' %}active{% endif %}" 
+                               href="{{ url_for('store_routes.shop', sort='price_high', category=category_id, search=search_query, min_price=min_price, max_price=max_price, availability=availability) }}">
+                               Price: High to Low
+                            </a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                {% for prod in products %}
+                <div class="col-md-6 col-xl-4" data-aos="fade-up" data-aos-delay="{{ (loop.index0 % 3) * 80 }}">
+                    <div class="product-card h-100">
+                        <!-- Badge for out of stock -->
+                        {% if prod['stock'] <= 0 %}
+                        <div class="badge bg-danger position-absolute top-0 start-0 m-3 z-1 px-3 py-2 rounded-pill shadow-sm">Out of Stock</div>
+                        {% endif %}
+
+                        <div class="product-card-img-wrap">
+                            {% if prod['image'] %}
+                                <img src="{{ prod['image'] if prod['image'].startswith('http') else url_for('static', filename=prod['image']) }}"
+                                     alt="{{ prod['name'] }}"
+                                     onerror="this.src='https://placehold.co/400x270/efebe9/8d6e63?text=Furniture';">
+                            {% else %}
+                                <img src="https://placehold.co/400x270/efebe9/8d6e63?text=Furniture" alt="{{ prod['name'] }}">
+                            {% endif %}
+
+                            <button class="wishlist-btn {% if prod['is_wishlist'] %}active{% endif %}" 
+                                    onclick="toggleWishlist({{ prod['id'] }}, this)" 
+                                    title="Wishlist">
+                                <i class="{% if prod['is_wishlist'] %}fas fa-heart text-danger{% else %}far fa-heart{% endif %}"></i>
+                            </button>
+                            <div class="product-overlay">
+                                <a href="{{ url_for('store_routes.product', id=prod['id']) }}"
+                                   class="overlay-btn" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if prod['stock'] > 0 %}
+                                <form action="{{ url_for('cart_routes.cart_action') }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="action" value="add">
+                                    <input type="hidden" name="product_id" value="{{ prod['id'] }}">
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="overlay-btn" title="Add to Cart">
+                                        <i class="fas fa-cart-plus"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="product-card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <p class="product-category-tag mb-0">{{ prod['cat_name'] or 'Modern' }}</p>
+                                <!-- Star Rating -->
+                                <div class="rating-mini text-accent" style="font-size: 0.75rem;">
+                                    {% if prod['avg_rating'] %}
+                                        <i class="fas fa-star"></i> {{ "%.1f"|format(prod['avg_rating']|float) }}
+                                        <span class="text-muted small">({{ prod['review_count'] }})</span>
+                                    {% else %}
+                                        <span class="text-muted smaller">No reviews</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <h5 class="product-title">{{ prod['name'] }}</h5>
+                            <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
+                                <span class="product-price">Rs {{ "%.2f"|format(prod['price']|float) }}</span>
+                                <a href="{{ url_for('store_routes.product', id=prod['id']) }}"
+                                   class="product-link">
+                                    Details <i class="fas fa-arrow-right fa-xs ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Real-time search debounce
+    let typingTimer;
+    const searchInput = document.getElementById('searchInput');
+    const filterForm = document.getElementById('filterForm');
+
+    searchInput.addEventListener('input', () => {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            // Uncomment if you want purely dynamic search while typing
+            // filterForm.submit();
+        }, 800);
+    });
+</script>
+{% endblock %}
+
+{% endblock %}

@@ -1,0 +1,7 @@
+{'id': 1, 'name': 'Table', 'image': 'images/category_table.png', 'description': 'Premium wooden tables'}
+{'id': 2, 'name': 'Chair', 'image': 'images/category_chair.png', 'description': 'Ergonomic wooden chairs'}
+{'id': 3, 'name': 'Sofa', 'image': 'uploads/categories/sofa.png', 'description': 'Premium sofas and couches for every living room'}
+{'id': 4, 'name': 'Bed', 'image': 'uploads/categories/bed.png', 'description': 'Solid wood bed frames and storage beds'}
+{'id': 5, 'name': 'Cupboard', 'image': 'uploads/categories/cupboard.png', 'description': 'Wardrobes and storage cupboards for every space'}
+{'id': 6, 'name': 'Dining Set', 'image': 'uploads/categories/dining_set.png', 'description': 'Complete dining table and chair sets'}
+{'id': 11, 'name': 'dressing table', 'image': None, 'description': None}

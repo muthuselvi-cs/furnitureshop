@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block title %}Shopping Cart | FurniWood{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <!-- Page Title -->
+    <div class="d-flex align-items-center gap-3 mb-5" data-aos="fade-right">
+        <div style="width:50px;height:50px;background:var(--accent-wood);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;">
+            <i class="fas fa-bag-shopping text-white fs-5"></i>
+        </div>
+        <div>
+            <h2 class="fw-bold mb-0">Shopping Cart</h2>
+            <p class="text-muted small mb-0">Review your selected items</p>
+        </div>
+    </div>
+
+    {% if not cart_items %}
+    <!-- Empty Cart -->
+    <div class="text-center py-5" data-aos="fade-up">
+        <div class="mb-4">
+            <i class="fas fa-bag-shopping fa-4x" style="color:var(--light-wood);"></i>
+        </div>
+        <h4 class="fw-bold mb-2">Your cart is empty</h4>
+        <p class="text-muted mb-4">Looks like you haven't added anything yet.</p>
+        <a href="{{ url_for('store_routes.shop') }}" class="btn btn-wood px-5 py-3">
+            <i class="fas fa-store me-2"></i>Start Shopping
+        </a>
+    </div>
+
+    {% else %}
+    <div class="row g-4">
+
+        <!-- Cart Items -->
+        <div class="col-lg-8">
+            <div data-aos="fade-up">
+                <!-- Header row (desktop only) -->
+                <div class="d-none d-md-flex mb-2 px-2" style="color:var(--text-muted);font-size:.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;">
+                    <div style="flex:1;">Product</div>
+                    <div style="width:100px;text-align:center;">Price</div>
+                    <div style="width:120px;text-align:center;">Qty</div>
+                    <div style="width:100px;text-align:center;">Subtotal</div>
+                    <div style="width:50px;"></div>
+                </div>
+
+                {% for item in cart_items %}
+                {% set subtotal = item['price'] * item['quantity'] %}
+                <div class="cart-item-row" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 60 }}">
+                    <!-- Image -->
+                    {% if item['image'] %}
+                    <img class="cart-item-img"
+                         src="{{ item['image'] if item['image'].startswith('http') else url_for('static', filename=item['image']) }}"
+                         alt="{{ item['name'] }}"
+                         onerror="this.parentNode.innerHTML='<div class=\'cart-item-placeholder\'><i class=\'fas fa-couch\'></i></div>'">
+                    {% else %}
+                    <div class="cart-item-placeholder">
+                        <i class="fas fa-couch fa-lg"></i>
+                    </div>
+                    {% endif %}
+
+                    <!-- Product info -->
+                    <div style="flex:1;min-width:0;">
+                        <h6 class="fw-bold mb-1 text-wood" style="font-size:.95rem;">{{ item['name'] }}</h6>
+                        <p class="mb-0 text-muted small d-md-none">
+                            Rs {{ "%.2f"|format(item['price']|float) }} each
+                        </p>
+                    </div>
+
+                    <!-- Price (desktop) -->
+                    <div class="d-none d-md-block text-center fw-semibold" style="width:100px;font-size:.9rem;">
+                        Rs {{ "%.2f"|format(item['price']|float) }}
+                    </div>
+
+                    <!-- Qty -->
+                    <div style="width:120px;">
+                        <form action="{{ url_for('cart_routes.cart_action') }}" method="POST">
+                            <input type="hidden" name="action" value="update">
+                            <input type="hidden" name="cart_id" value="{{ item['id'] }}">
+                            <input type="number" name="quantity" value="{{ item['quantity'] }}"
+                                   min="1" class="form-control form-control-sm text-center"
+                                   style="width:70px;"
+                                   onchange="this.form.submit()">
+                        </form>
+                    </div>
+
+                    <!-- Subtotal -->
+                    <div class="fw-bold text-center" style="width:100px;color:var(--primary-wood);font-size:.95rem;">
+                        Rs {{ "%.2f"|format(subtotal|float) }}
+                    </div>
+
+                    <!-- Remove -->
+                    <div style="width:50px;text-align:right;">
+                        <a href="{{ url_for('cart_routes.cart_action', action='remove', id=item['id']) }}"
+                           class="btn btn-sm"
+                           style="width:36px;height:36px;border-radius:50%;background:#ffebee;color:#c62828;display:inline-flex;align-items:center;justify-content:center;"
+                           title="Remove item">
+                            <i class="fas fa-trash-can fa-xs"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="mt-4">
+                <a href="{{ url_for('store_routes.shop') }}" class="btn btn-wood-outline">
+                    <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                </a>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4" data-aos="fade-left">
+            <div class="order-summary-card">
+                <h4>Order Summary</h4>
+
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted small">Subtotal</span>
+                    <span class="fw-semibold">Rs {{ "%.2f"|format(total|float) }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted small">Shipping</span>
+                    <span class="fw-semibold" style="color:#2e7d32;">Free</span>
+                </div>
+                <hr style="border-color:var(--light-wood);">
+                <div class="d-flex justify-content-between mb-4">
+                    <span class="fw-bold">Total</span>
+                    <span class="fw-bold fs-4" style="color:var(--primary-wood);">
+                        Rs {{ "%.2f"|format(total|float) }}
+                    </span>
+                </div>
+
+                <a href="{{ url_for('cart_routes.checkout') }}" class="btn btn-wood btn-lg w-100 mb-3">
+                    <i class="fas fa-lock me-2"></i>Proceed to Checkout
+                </a>
+
+                <!-- Trust badges -->
+                <div class="d-flex justify-content-center gap-3 mt-3">
+                    <div class="text-center">
+                        <i class="fas fa-shield-halved text-muted small"></i>
+                        <p class="mb-0 text-muted" style="font-size:.7rem;">Secure</p>
+                    </div>
+                    <div class="text-center">
+                        <i class="fas fa-truck text-muted small"></i>
+                        <p class="mb-0 text-muted" style="font-size:.7rem;">Free Ship</p>
+                    </div>
+                    <div class="text-center">
+                        <i class="fas fa-rotate-left text-muted small"></i>
+                        <p class="mb-0 text-muted" style="font-size:.7rem;">Returns</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

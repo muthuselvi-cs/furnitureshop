@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard | FurniWood{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+
+    <!-- Header Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-5" data-aos="fade-right">
+        <div>
+            <h2 class="fw-bold mb-1">Admin Dashboard</h2>
+            <p class="text-muted small mb-0">Platform Overview & Real-time Analytics</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin_routes.sales_report') }}" class="btn btn-wood-outline btn-sm px-3">
+                <i class="fas fa-chart-line me-2"></i>Full Report
+            </a>
+            <a href="{{ url_for('admin_routes.add_product') }}" class="btn btn-wood btn-sm px-3 shadow-sm">
+                <i class="fas fa-plus me-2"></i>New Product
+            </a>
+        </div>
+    </div>
+
+
+    <!-- Stat Cards -->
+    <div class="row g-4 mb-5" data-aos="fade-up">
+        <div class="col-6 col-sm-6 col-md-3">
+            <div class="stat-card border-0 shadow-sm">
+                <div class="stat-card-icon" style="background:var(--cream);color:var(--primary-wood);">
+                    <i class="fas fa-sack-dollar"></i>
+                </div>
+                <div class="stat-card-value">₹{{ "{:,.0f}".format(stats.total_revenue) }}</div>
+                <div class="stat-card-label">Total Revenue</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-6 col-md-3">
+            <div class="stat-card border-0 shadow-sm">
+                <div class="stat-card-icon" style="background:#e3f2fd;color:#1565c0;">
+                    <i class="fas fa-truck-ramp-box"></i>
+                </div>
+                <div class="stat-card-value">{{ stats.pending_orders }}</div>
+                <div class="stat-card-label">Pending Orders</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-6 col-md-3">
+            <div class="stat-card border-0 shadow-sm">
+                <div class="stat-card-icon" style="background:#fce4ec;color:#c62828;">
+                    <i class="fas fa-couch"></i>
+                </div>
+                <div class="stat-card-value">{{ stats.total_products }}</div>
+                <div class="stat-card-label">Total Products</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-6 col-md-3">
+            <div class="stat-card border-0 shadow-sm">
+                <div class="stat-card-icon" style="background:#fff8e1;color:#f57f17;">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-card-value">{{ stats.total_users }}</div>
+                <div class="stat-card-label">Total Customers</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts and Activity Row -->
+    <div class="row g-4 mb-5">
+        
+        <!-- Low Stock Alerts -->
+        <div class="col-lg-5" data-aos="fade-right">
+            <div class="admin-content-card h-100 shadow-sm" style="background: var(--white);">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fas fa-triangle-exclamation me-2 text-danger"></i>Low Stock Alerts
+                    </h5>
+                    {% if low_stock|length > 0 %}
+                    <span class="badge bg-danger rounded-pill">{{ low_stock|length }} Items</span>
+                    {% endif %}
+                </div>
+                
+                <div class="list-group list-group-flush">
+                    {% if not low_stock %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-check-circle text-success fa-2x mb-3 opacity-25"></i>
+                        <p class="text-muted small">All products are well-stocked.</p>
+                    </div>
+                    {% else %}
+                        {% for item in low_stock %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center border-wood-light py-3 px-0">
+                            <div class="overflow-hidden">
+                                <h6 class="mb-0 fw-bold text-truncate">{{ item.name }}</h6>
+                                <span class="smaller text-muted">ID: #{{ item.id }}</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge {% if item.stock < 5 %}bg-danger{% else %}bg-warning{% endif %} px-3 py-2">
+                                    {{ item.stock }} left
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div class="mt-auto pt-3">
+                    <a href="{{ url_for('admin_routes.products') }}" class="btn btn-wood-outline w-100 btn-sm mt-2">Manage Inventory</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Reviews -->
+        <div class="col-lg-7" data-aos="fade-left">
+            <div class="admin-content-card h-100 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fas fa-star me-2 text-accent"></i>Recent Customer Feedback
+                    </h5>
+                    <div class="fs-4 text-accent opacity-25">
+                        <i class="fas fa-quote-right"></i>
+                    </div>
+                </div>
+
+                <div class="reviews-feed">
+                    {% if not recent_reviews %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-comment-dots text-muted fa-2x mb-2 opacity-25"></i>
+                        <p class="text-muted">No reviews yet.</p>
+                    </div>
+                    {% else %}
+                        {% for review in recent_reviews %}
+                        <div class="review-item border-bottom border-wood-light pb-3 mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold small">{{ review.user_name }}</span>
+                                <div class="text-accent small">
+                                    {% for i in range(5) %}
+                                        <i class="{% if i < review.rating %}fas{% else %}far{% endif %} fa-star"></i>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <p class="mb-1 text-dark small text-italic">"{{ review.comment|truncate(120) }}"</p>
+                            <span class="smaller text-muted">on <strong>{{ review.product_name }}</strong></span>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="admin-content-card shadow-sm border-0" data-aos="fade-up">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <h5 class="fw-bold mb-0">
+                <i class="fas fa-clock-rotate-left me-2 text-accent"></i>Recent Transactions
+            </h5>
+            <a href="{{ url_for('admin_routes.orders') }}" class="btn btn-wood btn-sm px-4">Full Order List</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table admin-table align-middle mb-0">
+                <thead>
+                    <tr class="bg-body-tertiary">
+                        <th class="px-3">ORDER #</th>
+                        <th>CUSTOMER</th>
+                        <th>AMOUNT</th>
+                        <th>STATUS</th>
+                        <th class="text-end px-3">DATE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td class="px-3"><span class="badge bg-light text-dark shadow-sm px-3">#{{ order.id }}</span></td>
+                        <td class="fw-bold">{{ order.user_name }}</td>
+                        <td class="fw-bold text-accent">₹{{ "{:,.2f}".format(order.total_amount|float) }}</td>
+                        <td>
+                            <span class="badge rounded-pill px-3 py-2
+                                {% if order.payment_status == 'Paid' %}badge-paid
+                                {% else %}badge-cod{% endif %}">
+                                <i class="fas {% if order.payment_status == 'Paid' %}fa-circle-check{% else %}fa-clock{% endif %} me-1"></i>
+                                {{ order.payment_status }}
+                            </span>
+                        </td>
+                        <td class="text-muted text-end px-3 small">
+                            {{ order.order_date.strftime('%d %b %Y') if order.order_date.strftime else order.order_date }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

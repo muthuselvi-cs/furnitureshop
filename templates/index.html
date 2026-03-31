@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- ═══════════════ HERO SECTION ═══════════════ -->
+<div class="overflow-hidden" style="margin-top:0;">
+    <div class="hero-section"
+         style="background: url('{{ url_for('static', filename='images/hero_furniture.png') }}') no-repeat center center / cover;">
+        <div class="hero-content container px-3" data-aos="fade-up">
+            <p class="text-uppercase fw-bold mb-3"
+               style="color:var(--accent-wood);letter-spacing:4px;font-size:.82rem;">
+                Finest Wood Collection
+            </p>
+            <h1 class="hero-title mb-4">
+                Crafted with<br>Passion &amp; Precision.
+            </h1>
+            <p class="hero-subtitle mb-5">
+                Elevate your living space with our exclusive wood-finish collection.
+                Professional quality, timeless design — delivered to your door.
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a href="{{ url_for('store_routes.shop') }}"
+                   class="btn btn-wood btn-lg px-5 py-3">
+                    Explore Collection
+                </a>
+                <a href="#new-arrivals"
+                   class="btn btn-wood-outline light btn-lg px-5 py-3">
+                    New Arrivals
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Trust Bar -->
+<div class="bg-white shadow-sm py-3">
+    <div class="container">
+        <div class="row text-center g-3">
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <i class="fas fa-truck text-accent fs-5"></i>
+                    <span class="small fw-600" style="font-weight:600;color:var(--primary-wood);">Free Shipping</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <i class="fas fa-shield-halved text-accent fs-5"></i>
+                    <span class="small fw-600" style="font-weight:600;color:var(--primary-wood);">2-Year Warranty</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <i class="fas fa-rotate-left text-accent fs-5"></i>
+                    <span class="small fw-600" style="font-weight:600;color:var(--primary-wood);">30-Day Returns</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <i class="fas fa-headset text-accent fs-5"></i>
+                    <span class="small fw-600" style="font-weight:600;color:var(--primary-wood);">24/7 Support</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ CATEGORIES ═══════════════ -->
+<div class="container py-5 my-3">
+    <h2 class="section-title-premium" data-aos="fade-up">Shop by Category</h2>
+    <p class="section-subtitle" data-aos="fade-up" data-aos-delay="80">
+        Explore our carefully curated collections
+    </p>
+
+    <div class="row g-4 justify-content-center">
+        {% for cat in categories %}
+        <div class="col-lg-2 col-md-4 col-6" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 80 }}">
+            <a href="{{ url_for('store_routes.shop', category=cat['id']) }}" class="text-decoration-none">
+                <div class="text-center card-premium p-4 h-100"
+                     style="border-radius:var(--radius);cursor:pointer;">
+                    <div class="mb-3 mx-auto d-flex align-items-center justify-content-center overflow-hidden"
+                         style="width:100px;height:100px;border-radius:var(--radius);background:var(--light-wood);">
+                        {% if cat['image'] %}
+                            {% set raw = cat['image'] | trim %}
+                            {% set clean = raw.replace('static/', '') if raw.startswith('static/') else raw %}
+                            {% set src = clean if clean.startswith('http') else url_for('static', filename=clean) %}
+                            <img src="{{ src }}" alt="{{ cat['name'] }}"
+                                 style="width:100%;height:100%;object-fit:cover;"
+                                 onerror="this.parentNode.innerHTML='<i class=\'fas fa-couch fa-2x\' style=\'color:var(--accent-wood);\'></i>';">
+                        {% elif cat['category_images'] and cat['category_images']|length > 0 %}
+                            {% set ci = cat['category_images'][0] %}
+                            {% set rp = ci['image_path'] | trim %}
+                            {% set cp = rp.replace('static/', '') if rp.startswith('static/') else rp %}
+                            {% set isrc = cp if cp.startswith('http') else url_for('static', filename=cp) %}
+                            <img src="{{ isrc }}" alt="{{ cat['name'] }}"
+                                 style="width:100%;height:100%;object-fit:cover;"
+                                 onerror="this.parentNode.innerHTML='<i class=\'fas fa-couch fa-2x\' style=\'color:var(--accent-wood);\'></i>';">
+                        {% else %}
+                            <i class="fas fa-couch fa-2x" style="color:var(--accent-wood);"></i>
+                        {% endif %}
+                    </div>
+                    <h6 class="fw-bold mb-0 text-wood" style="font-size:.88rem;">{{ cat['name'] }}</h6>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ═══════════════ NEW ARRIVALS ═══════════════ -->
+<div id="new-arrivals" class="container pb-5 mb-3">
+    <div class="d-flex justify-content-between align-items-end mb-2" data-aos="fade-up">
+        <div>
+            <h2 class="section-title-premium text-start mb-1" style="text-align:left !important;">New Arrivals</h2>
+        </div>
+        <a href="{{ url_for('store_routes.shop') }}" class="btn btn-wood-outline mb-1">View All</a>
+    </div>
+    <p class="text-accent fw-semibold small mb-5" style="letter-spacing:.5px;">
+        Handpicked selection of our latest pieces
+    </p>
+
+    <div class="row g-4">
+        {% for prod in products %}
+        <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="{{ (loop.index0 % 4) * 80 }}">
+            <div class="product-card h-100">
+                <div class="product-card-img-wrap">
+                    {% if prod['image'] %}
+                        {% set img_src = prod['image'] if prod['image'].startswith('http') else url_for('static', filename=prod['image']) %}
+                        <img src="{{ img_src }}" alt="{{ prod['name'] }}"
+                             onerror="this.src='https://placehold.co/400x270/efebe9/8d6e63?text=Furniture';">
+                    {% else %}
+                        <img src="https://placehold.co/400x270/efebe9/8d6e63?text=Furniture" alt="{{ prod['name'] }}">
+                    {% endif %}
+                    
+                    <button class="wishlist-btn {% if prod['is_wishlist'] %}active{% endif %}" 
+                            onclick="toggleWishlist({{ prod['id'] }}, this)" 
+                            title="Wishlist">
+                        <i class="{% if prod['is_wishlist'] %}fas fa-heart text-danger{% else %}far fa-heart{% endif %}"></i>
+                    </button>
+                    <div class="product-overlay">
+                        <a href="{{ url_for('store_routes.product', id=prod['id']) }}"
+                           class="overlay-btn" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <form action="{{ url_for('cart_routes.cart_action') }}" method="POST" class="d-inline">
+                            <input type="hidden" name="action" value="add">
+                            <input type="hidden" name="product_id" value="{{ prod['id'] }}">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="overlay-btn" title="Add to Cart">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="product-card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <p class="product-category-tag mb-0">Modern Collection</p>
+                        <!-- Star Rating -->
+                        <div class="rating-mini text-accent" style="font-size: 0.75rem;">
+                            {% if prod['avg_rating'] %}
+                                <i class="fas fa-star"></i> {{ "%.1f"|format(prod['avg_rating']|float) }}
+                                <span class="text-muted smaller">({{ prod['review_count'] }})</span>
+                            {% else %}
+                                <span class="text-muted smaller">No reviews</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <h5 class="product-title">{{ prod['name'] }}</h5>
+                    <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
+                        <span class="product-price">Rs {{ "%.2f"|format(prod['price']|float) }}</span>
+                        <a href="{{ url_for('store_routes.product', id=prod['id']) }}"
+                           class="product-link">
+                            Details <i class="fas fa-arrow-right fa-xs ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ═══════════════ WHY US ═══════════════ -->
+<div class="py-5" style="background:var(--light-wood);">
+    <div class="container">
+        <h2 class="section-title-premium" data-aos="fade-up">Why Choose FurniWood</h2>
+        <div class="row g-4 mt-1">
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="0">
+                <div class="feature-badge">
+                    <div class="feature-badge-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Sustainable Wood</h5>
+                    <p class="text-muted small mb-0">Every piece is crafted from responsibly sourced, eco-certified hardwood.</p>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="feature-badge">
+                    <div class="feature-badge-icon">
+                        <i class="fas fa-ruler-combined"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Custom Sizes</h5>
+                    <p class="text-muted small mb-0">Order in your exact dimensions. Our craftsmen work to your specification.</p>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="feature-badge">
+                    <div class="feature-badge-icon">
+                        <i class="fas fa-medal"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Premium Quality</h5>
+                    <p class="text-muted small mb-0">Backed by a 2-year warranty. Quality that stands the test of time.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

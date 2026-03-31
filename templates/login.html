@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Login | FurniWood{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="container">
+        <div class="auth-card" data-aos="zoom-in">
+
+            <!-- Header -->
+            <div class="auth-card-header">
+                <div class="mb-3">
+                    <div style="width:60px;height:60px;background:rgba(255,255,255,.15);border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center;">
+                        <i class="fas fa-couch fa-2x text-white"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold">Welcome Back</h3>
+                <p>Access your premium furniture account</p>
+            </div>
+
+            <!-- Body -->
+            <div class="auth-card-body">
+                {% if error %}
+                <div class="alert alert-danger py-2 px-3 small mb-4">
+                    <i class="fas fa-circle-xmark me-2"></i>{{ error }}
+                </div>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('auth_routes.login') }}">
+                    <div class="mb-4">
+                        <label class="form-label">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-end-0">
+                                <i class="fas fa-envelope text-muted small"></i>
+                            </span>
+                            <input type="email" name="email"
+                                   class="form-control border-start-0 ps-0"
+                                   placeholder="name@example.com" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-1">
+                            <label class="form-label mb-0">Password</label>
+                            <a href="#" class="small text-decoration-none text-accent">Forgot password?</a>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text border-end-0">
+                                <i class="fas fa-lock text-muted small"></i>
+                            </span>
+                            <input type="password" name="password"
+                                   class="form-control border-start-0 ps-0"
+                                   placeholder="••••••••" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 d-flex align-items-center">
+                        <input type="checkbox" class="form-check-input me-2" id="remember">
+                        <label class="form-check-label small text-muted" for="remember">
+                            Remember me for 30 days
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-wood btn-lg w-100 mb-4">
+                        <i class="fas fa-right-to-bracket me-2"></i>Secure Login
+                    </button>
+
+                    <div class="text-center">
+                        <span class="text-muted small">New to FurniWood? </span>
+                        <a href="{{ url_for('auth_routes.register') }}"
+                           class="small fw-bold text-decoration-none text-accent ms-1">
+                            Create an Account
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

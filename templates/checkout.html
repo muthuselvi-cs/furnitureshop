@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+{% block title %}Checkout | FurniWood{% endblock %}
+
+{% block content %}
+
+{% if show_razorpay %}
+<!-- ══════════ RAZORPAY PAYMENT PROCESSING ══════════ -->
+<div class="container py-5 text-center" data-aos="fade-up">
+    <div class="mb-4">
+        <div style="width:90px;height:90px;background:linear-gradient(135deg,var(--accent-wood),#a0784a);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;">
+            <i class="fas fa-credit-card fa-2x text-white"></i>
+        </div>
+    </div>
+    <h3 class="fw-bold mb-2">Processing Razorpay Payment</h3>
+    <p class="text-muted">Please wait, payment window is opening…</p>
+    <div id="rzp-status" class="mt-3"></div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+var options = {
+    "key": "{{ razorpay_key }}",
+    "amount": "{{ rp_amount }}",
+    "currency": "INR",
+    "name": "FurniWood",
+    "description": "Order #{{ rp_order_id }}",
+    "image": "",
+    "order_id": "",
+    "handler": function (response) {
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{{ url_for('cart_routes.razorpay_verify') }}";
+        var fields = {
+            'razorpay_payment_id': response.razorpay_payment_id,
+            'razorpay_order_id':   response.razorpay_order_id || '',
+            'razorpay_signature':  response.razorpay_signature || '',
+            'db_order_id':         '{{ rp_order_id }}'
+        };
+        for (var k in fields) {
+            var input = document.createElement('input');
+            input.type  = 'hidden';
+            input.name  = k;
+            input.value = fields[k];
+            form.appendChild(input);
+        }
+        document.body.appendChild(form);
+        form.submit();
+    },
+    "prefill": { "name": "{{ user_data['name']|e if user_data else '' }}" },
+    "theme": { "color": "#C19A6B" },
+    "modal": {
+        "ondismiss": function () {
+            document.getElementById('rzp-status').innerHTML =
+                '<div class="alert alert-warning mt-3">Payment cancelled. <a href="{{ url_for('store_routes.my_account') }}">Go to My Orders</a></div>';
+        }
+    }
+};
+var rzp1 = new Razorpay(options);
+rzp1.open();
+rzp1.on('payment.failed', function (response) {
+    document.getElementById('rzp-status').innerHTML =
+        '<div class="alert alert-danger mt-3">Payment failed: ' + response.error.description + '</div>';
+});
+</script>
+
+{% else %}
+
+<!-- ══════════ MULTI-STEP CHECKOUT ══════════ -->
+<div class="container py-5">
+    
+    <!-- Progress Stepper -->
+    <div class="row justify-content-center mb-5" data-aos="fade-down">
+        <div class="col-lg-8">
+            <div class="checkout-stepper d-flex justify-content-between position-relative">
+                <div class="step-line"></div>
+                <!-- Step 1 -->
+                <div class="step-item active" id="step1-indicator">
+                    <div class="step-icon">1</div>
+                    <span class="step-label">Shipping</span>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-item" id="step2-indicator">
+                    <div class="step-icon">2</div>
+                    <span class="step-label">Payment</span>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-item" id="step3-indicator">
+                    <div class="step-icon">3</div>
+                    <span class="step-label">Review</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <!-- Main Form Column -->
+        <div class="col-lg-7" data-aos="fade-right">
+            <form method="POST" action="{{ url_for('cart_routes.checkout') }}" id="checkoutForm">
+                
+                {% if error_msg %}
+                <div class="alert alert-danger mb-4 py-2 px-3 small shadow-sm animate__animated animate__shakeX">
+                    <i class="fas fa-circle-xmark me-2"></i>{{ error_msg }}
+                </div>
+                {% endif %}
+
+                <!-- SECTION 1: SHIPPING -->
+                <div class="checkout-step-section active" id="section-shipping">
+                    <div class="card-premium p-4 mb-4">
+                        <h5 class="fw-bold mb-4 d-flex align-items-center">
+                            <i class="fas fa-location-dot text-accent me-2"></i>
+                            Shipping Information
+                        </h5>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Delivery Address</label>
+                            <textarea name="address" class="form-control border-wood shadow-none" rows="4"
+                                      placeholder="Full residential or office address, city, and pincode..."
+                                      required>{{ user_data['address'] if user_data else '' }}</textarea>
+                            <div class="form-text smaller text-muted pt-2 text-italic">
+                                <i class="fas fa-info-circle me-1"></i> We currently only deliver to major metropolitan areas.
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-wood px-5 py-3" onclick="goToStep(2)">
+                                Continue to Payment <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: PAYMENT -->
+                <div class="checkout-step-section" id="section-payment" style="display:none;">
+                    <div class="card-premium p-4 mb-4">
+                        <h5 class="fw-bold mb-4 d-flex align-items-center">
+                            <i class="fas fa-credit-card text-accent me-2"></i>
+                            Select Payment Method
+                        </h5>
+                        
+                        <!-- COD Option -->
+                        <div class="payment-card mb-3">
+                            <input type="radio" class="btn-check" name="payment_method" id="pm_cod" value="COD" checked>
+                            <label class="btn btn-outline-wood w-100 p-3 text-start d-flex align-items-center gap-3 shadow-none border-2" for="pm_cod">
+                                <i class="fas fa-truck-ramp-box fs-4 text-accent"></i>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold">Cash on Delivery (COD)</div>
+                                    <div class="smaller text-muted">Pay securely when items reach your doorstep.</div>
+                                </div>
+                                <i class="fas fa-circle-check check-icon fs-5"></i>
+                            </label>
+                        </div>
+
+                        <!-- Online Option -->
+                        <div class="payment-card mb-4">
+                            <input type="radio" class="btn-check" name="payment_method" id="pm_razorpay" value="Razorpay">
+                            <label class="btn btn-outline-wood w-100 p-3 text-start d-flex align-items-center gap-3 shadow-none border-2" for="pm_razorpay">
+                                <i class="fas fa-wallet fs-4 text-accent"></i>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold">Pay Online (Razorpay)</div>
+                                    <div class="smaller text-muted">UPI, Cards, Net Banking & Wallets.</div>
+                                </div>
+                                <i class="fas fa-circle-check check-icon fs-5"></i>
+                            </label>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-wood-outline px-4 py-3" onclick="goToStep(1)">
+                                <i class="fas fa-arrow-left me-2"></i> Back
+                            </button>
+                            <button type="button" class="btn btn-wood px-5 py-3" onclick="goToStep(3)">
+                                Review Order <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: REVIEW -->
+                <div class="checkout-step-section" id="section-review" style="display:none;">
+                    <div class="card-premium p-4 mb-4">
+                        <h5 class="fw-bold mb-4 d-flex align-items-center">
+                            <i class="fas fa-file-invoice text-accent me-2"></i>
+                            Review & Place Order
+                        </h5>
+                        
+                        <div class="bg-cream p-4 rounded-3 mb-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <p class="small fw-bold text-muted text-uppercase mb-2">Shipping To</p>
+                                    <p class="mb-0 text-dark" id="display-address" style="line-height: 1.6;"></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="small fw-bold text-muted text-uppercase mb-2">Payment Mode</p>
+                                    <p class="mb-0 text-dark fw-bold" id="display-payment"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-success border-0 small py-3 px-4 d-flex align-items-center gap-3">
+                            <i class="fas fa-truck-fast fa-2x opacity-50"></i>
+                            <div>
+                                <h6 class="mb-1 fw-bold">Safe & Fast Delivery</h6>
+                                <p class="mb-0 text-dark opacity-75">Your order will reach you within 3-5 business days.</p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                            <button type="button" class="btn btn-wood-outline px-4 py-3" onclick="goToStep(2)">
+                                <i class="fas fa-arrow-left me-2"></i> Edit Payment
+                            </button>
+                            <button type="submit" class="btn btn-wood px-5 py-3 fw-bold shadow-lg">
+                                Complete Purchase <i class="fas fa-bolt ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Sidebar Summary Column -->
+        <div class="col-lg-4" data-aos="fade-left">
+            <div class="order-summary-card sticky-top" style="top: 100px; z-index: 10;">
+                <h5 class="fw-bold mb-4 pb-2 border-bottom">Order Summary</h5>
+                
+                <div class="summary-items mb-4" style="max-height: 300px; overflow-y: auto;">
+                    {% for item in cart_items %}
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="bg-light rounded p-1" style="width: 60px; height: 60px; flex-shrink: 0;">
+                            {% if item['image'] %}
+                            <img src="{{ item['image'] if item['image'].startswith('http') else url_for('static', filename=item['image']) }}" 
+                                 class="w-100 h-100 rounded object-fit-cover shadow-sm">
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <p class="mb-0 text-dark fw-bold text-truncate small">{{ item['name'] }}</p>
+                            <p class="mb-0 text-muted smaller">Qty: {{ item['quantity'] }} &times; Rs {{ "%.2f"|format(item['price']|float) }}</p>
+                        </div>
+                        <div class="text-end fw-bold smaller text-wood" style="white-space: nowrap;">
+                            Rs {{ "%.2f"|format(item['price'] * item['quantity']) }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="summary-details bg-light-wood p-3 rounded-3 mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Subtotal</span>
+                        <span class="small fw-semibold">Rs {{ "%.2f"|format(total_amount|float) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom border-white">
+                        <span class="text-muted small">Shipping</span>
+                        <span class="small text-success fw-bold">FREE</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center pt-2">
+                        <span class="fw-bold text-dark">Grand Total</span>
+                        <span class="fw-bold fs-4 text-accent">Rs {{ "%.2f"|format(total_amount|float) }}</span>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-white rounded-3 border-wood-light border text-center">
+                    <i class="fas fa-lock text-success me-2 ms-1"></i>
+                    <span class="smaller text-muted">Secured SSL Checkout</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+function goToStep(step) {
+    // Basic validation
+    if (step === 2) {
+        const addr = document.querySelector('textarea[name="address"]').value.trim();
+        if (!addr) {
+            alert("Please enter a shipping address.");
+            return;
+        }
+    }
+
+    // Hide all sections
+    document.querySelectorAll('.checkout-step-section').forEach(s => s.style.display = 'none');
+    
+    // Reset indicators
+    document.querySelectorAll('.step-item').forEach(i => i.classList.remove('active'));
+
+    // Update section and indicators
+    if (step === 1) {
+        document.getElementById('section-shipping').style.display = 'block';
+        document.getElementById('step1-indicator').classList.add('active');
+    } else if (step === 2) {
+        document.getElementById('section-payment').style.display = 'block';
+        document.getElementById('step1-indicator').classList.add('active');
+        document.getElementById('step2-indicator').classList.add('active');
+    } else if (step === 3) {
+        // Prepare Review Data
+        document.getElementById('display-address').innerText = document.querySelector('textarea[name="address"]').value;
+        const pm = document.querySelector('input[name="payment_method"]:checked').value;
+        document.getElementById('display-payment').innerText = pm === 'COD' ? 'Cash on Delivery (COD)' : 'Online Payment (Razorpay)';
+
+        document.getElementById('section-review').style.display = 'block';
+        document.getElementById('step1-indicator').classList.add('active');
+        document.getElementById('step2-indicator').classList.add('active');
+        document.getElementById('step3-indicator').classList.add('active');
+    }
+    
+    // Scroll to top of stepper
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+{% endblock %}
+
+{% endif %}
+{% endblock %}

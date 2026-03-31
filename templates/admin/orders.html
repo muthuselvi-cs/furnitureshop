@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Sales Orders | FurniWood{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-right">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fas fa-shopping-bag me-2 text-accent"></i>Sales Orders</h2>
+            <p class="text-muted small mb-0">All customer orders</p>
+        </div>
+    </div>
+
+    <div class="admin-content-card" data-aos="fade-up">
+        <div class="table-responsive">
+            <table class="table admin-table mb-0">
+                <thead style="background:var(--light-wood); color:var(--primary-wood);">
+                    <tr>
+                        <th style="color:var(--primary-wood); font-weight:700;">Order ID</th>
+                        <th style="color:var(--primary-wood); font-weight:700;">Customer</th>
+                        <th style="color:var(--primary-wood); font-weight:700;">Amount</th>
+                        <th style="color:var(--primary-wood); font-weight:700; text-align:center;">Payment</th>
+                        <th style="color:var(--primary-wood); font-weight:700; text-align:center;">Delivery</th>
+                        <th style="color:var(--primary-wood); font-weight:700;">Date</th>
+                        <th style="color:var(--primary-wood); font-weight:700; text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td><span class="fw-bold">#{{ order.id }}</span></td>
+                        <td>{{ order.user_name }}</td>
+                        <td class="fw-bold text-wood">₹{{ order.total_amount }}</td>
+                        <td>
+                            <span class="badge rounded-pill px-3 py-1
+                                {% if order.payment_status == 'Paid' %}badge-paid
+                                {% else %}badge-cod{% endif %}">
+                                {{ order.payment_status }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill badge-info px-3 py-1">
+                                {{ order.status_name }}
+                            </span>
+                        </td>
+                        <td class="text-muted small">{{ order.order_date }}</td>
+                        <td class="text-end">
+                            <a href="{{ url_for('admin_routes.view_order', id=order.id) }}" class="btn btn-wood btn-sm px-4">
+                                <i class="fas fa-eye me-1"></i>View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

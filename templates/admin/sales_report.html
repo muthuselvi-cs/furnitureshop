@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Sales Report | FurniWood{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-5" data-aos="fade-down">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fas fa-chart-line me-2 text-accent"></i>Sales Performance</h2>
+            <p class="text-muted small mb-0">Detailed analytics and revenue tracking</p>
+        </div>
+        <div class="text-end">
+            <span class="badge rounded-pill bg-wood-light text-wood px-4 py-2">
+                Last 30 Days Activity
+            </span>
+        </div>
+    </div>
+
+    <!-- Top Metrics Overview -->
+    <div class="row g-4 mb-5" data-aos="fade-up">
+        <div class="col-lg-4">
+            <div class="stat-card" style="border-left: 5px solid var(--accent-wood);">
+                <div class="stat-card-label">Overall Revenue (Paid)</div>
+                <div class="stat-card-value fs-3 text-accent">Rs {{ "%.2f"|format(summary.total_revenue|float) }}</div>
+                <div class="small text-muted mt-2"><i class="fas fa-arrow-trend-up me-1"></i>Accumulated earnings</div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="stat-card" style="border-left: 5px solid #2e7d32;">
+                <div class="stat-card-label">Successful Sales</div>
+                <div class="stat-card-value fs-3">{{ summary.total_orders }}</div>
+                <div class="small text-muted mt-2"><i class="fas fa-check-circle me-1"></i>Completed transactions</div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="stat-card" style="border-left: 5px solid var(--primary-wood);">
+                <div class="stat-card-label">Top Category</div>
+                <div class="stat-card-value fs-4">{{ summary.top_category.name if summary.top_category else 'N/A' }}</div>
+                <div class="small text-muted mt-2"><i class="fas fa-star me-1"></i>Most popular collection</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4" data-aos="fade-up" data-aos-delay="100">
+        <!-- Daily Breakdown -->
+        <div class="col-lg-8">
+            <div class="admin-content-card h-100">
+                <h5 class="fw-bold mb-4">Daily Revenue Breakdown</h5>
+                <div class="table-responsive">
+                    <table class="table admin-table mb-0">
+                        <thead style="background:var(--light-wood); color:var(--primary-wood);">
+                            <tr>
+                                <th style="color:var(--primary-wood); font-weight:700;">Date</th>
+                                <th style="color:var(--primary-wood); font-weight:700; text-align:right;">Daily Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in sales_data %}
+                            <tr>
+                                <td class="text-muted"><i class="far fa-calendar me-2"></i>{{ entry.date }}</td>
+                                <td class="text-end fw-bold text-accent">Rs {{ "%.2f"|format(entry.total|float) }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% if not sales_data %}
+                            <tr>
+                                <td colspan="2" class="text-center py-5 text-muted">
+                                    <i class="fas fa-box-open d-block fs-3 mb-2 opacity-25"></i>
+                                    No sales data recorded for this period.
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Summary -->
+        <div class="col-lg-4">
+            <div class="admin-content-card h-100" style="background:var(--cream);">
+                <h5 class="fw-bold mb-4 text-wood">Analysis Summary</h5>
+                
+                <div class="mb-5">
+                    <label class="small fw-bold text-muted text-uppercase letter-spacing-1 d-block mb-2">Best Selling Product</label>
+                    <div class="p-3 bg-white rounded shadow-sm border-start border-4 border-info">
+                        <div class="fw-bold text-primary-wood fs-5">
+                            {{ summary.best_seller.name if summary.best_seller else 'Not Available' }}
+                        </div>
+                        <div class="small text-muted mt-1">Highest unit volume currently sold</div>
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <label class="small fw-bold text-muted text-uppercase letter-spacing-1 d-block mb-2">Reporting Logic</label>
+                    <p class="small text-muted" style="line-height:1.6;">
+                        This report aggregates data across all successfully completed transactions where the payment status is marked as <strong>'Paid'</strong>. It reflects the latest warehouse turnover and total income.
+                    </p>
+                </div>
+
+                <div class="text-center mt-auto">
+                    <button class="btn btn-wood w-100 py-2" onclick="window.print()">
+                        <i class="fas fa-download me-2"></i>Export Report (PDF)
+                    </button>
+                    <p class="smaller text-muted mt-3 mb-0">Confidential Admin Performance Data</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

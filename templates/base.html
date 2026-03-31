@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FurniWood | Premium Furniture Store{% endblock %}</title>
+    <meta name="description" content="FurniWood — curating the finest wood-finish furniture for your modern home.">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- AOS Animations -->
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<!-- ═══════════════════════ NAVBAR ═══════════════════════ -->
+<nav class="navbar navbar-expand-lg navbar-wood sticky-top" id="mainNavbar">
+    <div class="container">
+
+        <!-- BRAND -->
+        <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none"
+           href="{% if session.get('admin_id') %}{{ url_for('admin_routes.dashboard') }}{% else %}{{ url_for('store_routes.index') }}{% endif %}">
+            <div class="brand-icon">
+                <i class="fas fa-couch text-white fs-6"></i>
+            </div>
+            <span class="navbar-brand-text">FURNI<span>WOOD</span></span>
+        </a>
+
+        <!-- TOGGLER -->
+        <button class="navbar-toggler border-0 shadow-none p-2" type="button"
+                data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-label="Toggle navigation">
+            <i class="fas fa-bars text-white fs-5"></i>
+        </button>
+
+        <!-- LINKS -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+
+            {% if session.get('admin_id') %}
+            <!-- ADMIN NAV -->
+            <ul class="navbar-nav me-auto ps-lg-3">
+                <li class="nav-item"><a class="nav-link nav-link-wood" href="{{ url_for('admin_routes.dashboard') }}"><i class="fas fa-gauge-high me-1"></i>Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-wood" href="{{ url_for('admin_routes.products') }}"><i class="fas fa-couch me-1"></i>Products</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-wood" href="{{ url_for('admin_routes.categories') }}"><i class="fas fa-tags me-1"></i>Categories</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-wood" href="{{ url_for('admin_routes.orders') }}"><i class="fas fa-shopping-bag me-1"></i>Orders</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-wood" href="{{ url_for('admin_routes.sales_report') }}"><i class="fas fa-chart-line me-1"></i>Reports</a></li>
+            </ul>
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                <li class="nav-item">
+                    <a class="btn btn-wood py-2 px-4" href="{{ url_for('auth_routes.logout') }}">
+                        <i class="fas fa-right-from-bracket me-1"></i>Logout
+                    </a>
+                </li>
+            </ul>
+
+            {% elif session.get('user_id') %}
+            <!-- USER NAV -->
+            <ul class="navbar-nav me-auto ps-lg-3 align-items-center">
+                <li class="nav-item"><a class="nav-link nav-link-wood" href="{{ url_for('store_routes.index') }}">Home</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-wood" href="{{ url_for('store_routes.shop') }}">Shop</a></li>
+                
+                <!-- Navbar Search -->
+                <li class="nav-item ms-lg-3 d-none d-lg-block">
+                    <form action="{{ url_for('store_routes.shop') }}" method="GET" class="nav-search-form">
+                        <input type="text" name="search" placeholder="Search furniture..." class="nav-search-input">
+                        <button type="submit" class="nav-search-btn"><i class="fas fa-magnifying-glass"></i></button>
+                    </form>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav ms-auto align-items-center gap-3">
+                <!-- Cart Icon with Badge -->
+                <li class="nav-item">
+                    <a class="nav-link nav-link-wood position-relative px-3" href="{{ url_for('cart_routes.cart') }}">
+                        <i class="fas fa-bag-shopping fs-5"></i>
+                        {% if cart_count > 0 %}
+                        <span class="cart-badge">{{ cart_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+
+                <!-- User Dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link nav-link-wood dropdown-toggle d-flex align-items-center gap-2" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="user-avatar-sm">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span class="d-none d-xl-inline">{{ session.get('user_name', 'My Account') }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2 p-2 rounded-3" aria-labelledby="userDropdown">
+                        <li>
+                            <a class="dropdown-item rounded-2 py-2" href="{{ url_for('store_routes.my_account') }}">
+                                <i class="fas fa-box me-2 opacity-75"></i>My Orders
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item rounded-2 py-2" href="{{ url_for('store_routes.wishlist') }}">
+                                <i class="fas fa-heart me-2 opacity-75"></i>Wishlist
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider opacity-50"></li>
+                        <li>
+                            <a class="dropdown-item rounded-2 py-2 text-danger" href="{{ url_for('auth_routes.logout') }}">
+                                <i class="fas fa-sign-out-alt me-2 opacity-75"></i>Logout
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            {% else %}
+            <!-- GUEST NAV -->
+            <ul class="navbar-nav me-auto ps-lg-3 align-items-center">
+                <li class="nav-item"><a class="nav-link nav-link-wood" href="{{ url_for('store_routes.index') }}">Home</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-wood" href="{{ url_for('store_routes.shop') }}">Shop</a></li>
+                <li class="nav-item ms-lg-3 d-none d-lg-block">
+                    <form action="{{ url_for('store_routes.shop') }}" method="GET" class="nav-search-form">
+                        <input type="text" name="search" placeholder="Search furniture..." class="nav-search-input">
+                        <button type="submit" class="nav-search-btn"><i class="fas fa-magnifying-glass"></i></button>
+                    </form>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                <li class="nav-item">
+                    <a class="nav-link nav-link-wood" href="{{ url_for('auth_routes.login') }}">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-wood py-2 px-4 shadow-sm" href="{{ url_for('auth_routes.register') }}">
+                        Join Now
+                    </a>
+                </li>
+            </ul>
+            {% endif %}
+
+        </div>
+    </div>
+</nav>
+
+<!-- ═══════════════════ FLASH MESSAGES ════════════════════ -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="container mt-4" style="position:relative;z-index:100;">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-{% if category == 'success' %}circle-check{% elif category == 'danger' or category == 'error' %}circle-xmark{% else %}circle-info{% endif %} me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endwith %}
+
+<!-- ═══════════════════════ CONTENT ═══════════════════════ -->
+<main class="flex-grow-1 pb-5">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ═══════════════════════ FOOTER ════════════════════════ -->
+{% if session.get('admin_id') %}
+<footer class="footer-admin mt-auto">
+    <div class="container d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="footer-admin-left">
+            &copy; 2026 FurniWood Admin Panel
+        </div>
+        <div class="footer-admin-right">
+            Version 1.0 <span class="mx-2 opacity-50">|</span> <i class="fas fa-user-shield me-1"></i>Logged in as Admin
+        </div>
+    </div>
+</footer>
+{% else %}
+<footer class="footer-premium">
+    <div class="container">
+        <div class="row g-5">
+
+            <!-- Brand Column -->
+            <div class="col-lg-4 col-md-6">
+                <div class="footer-brand mb-3">FURNI<span>WOOD</span></div>
+                <p class="footer-desc mb-4">
+                    Curating the finest wood-finish furniture for your modern home. Experience the blend of tradition and timeless elegance.
+                </p>
+                <div class="footer-social">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest-p"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-x-twitter"></i></a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="col-lg-2 col-md-6 col-6">
+                <h6 class="footer-heading">Quick Links</h6>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('store_routes.index') }}">Home</a></li>
+                    <li><a href="{{ url_for('store_routes.shop') }}">Shop</a></li>
+                    {% if session.get('user_id') %}
+                    <li><a href="{{ url_for('cart_routes.cart') }}">Cart</a></li>
+                    <li><a href="{{ url_for('store_routes.wishlist') }}">Wishlist</a></li>
+                    <li><a href="{{ url_for('store_routes.my_account') }}">My Orders</a></li>
+                    {% else %}
+                    <li><a href="{{ url_for('auth_routes.login') }}">Login</a></li>
+                    <li><a href="{{ url_for('auth_routes.register') }}">Register</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- Contact -->
+            <div class="col-lg-3 col-md-6 col-6">
+                <h6 class="footer-heading">Contact</h6>
+                <ul class="footer-links">
+                    <li><i class="fas fa-location-dot me-2 text-accent"></i>123 Furniture St, Wood City</li>
+                    <li><i class="fas fa-envelope me-2 text-accent"></i>contact@furniwood.com</li>
+                    <li><i class="fas fa-phone me-2 text-accent"></i>+91 98765 43210</li>
+                </ul>
+            </div>
+
+            <!-- Newsletter -->
+            <div class="col-lg-3 col-md-6">
+                <h6 class="footer-heading">Newsletter</h6>
+                <p class="footer-desc mb-3" style="font-size:.85rem;">Get exclusive deals and new arrivals in your inbox.</p>
+                <form class="footer-newsletter d-flex" action="{{ url_for('store_routes.subscribe') }}" method="POST">
+                    <input type="email" name="email" class="form-control" placeholder="Your email…" required>
+                    <button type="submit" class="btn btn-wood border-radius-left-0" style="border-radius:0 var(--radius-sm) var(--radius-sm) 0; white-space:nowrap;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+        <hr class="footer-divider">
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <p class="footer-copy mb-0">&copy; 2026 FurniWood. All rights reserved.</p>
+            <p class="footer-copy mb-0">Crafted with <i class="fas fa-heart text-accent" style="font-size:.75rem;"></i> for your home.</p>
+        </div>
+    </div>
+</footer>
+{% endif %}
+
+<!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script>
+  AOS.init({ duration: 800, once: true, offset: 80, easing: 'ease-out-cubic' });
+
+  // Navbar scroll behaviour
+  const nav = document.getElementById('mainNavbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 60) {
+      nav.style.boxShadow = '0 6px 30px rgba(0,0,0,.45)';
+    } else {
+      nav.style.boxShadow = '0 4px 24px rgba(0,0,0,.35)';
+    }
+  });
+</script>
+
+<!-- Global Toast -->
+<div id="customToast" class="small">
+  <i class="fas fa-circle-check"></i>
+  <span id="toastMessage">Action successful</span>
+</div>
+
+<script>
+function showToast(message, icon = 'fa-circle-check') {
+  const toast = document.getElementById('customToast');
+  const msgText = document.getElementById('toastMessage');
+  const iconEl = toast.querySelector('i');
+  
+  if (!toast || !msgText || !iconEl) return;
+  
+  msgText.innerText = message;
+  iconEl.className = `fas ${icon}`;
+  
+  toast.classList.add('show');
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3000);
+}
+
+async function toggleWishlist(productId, btn) {
+  try {
+    const response = await fetch('/wishlist/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_id: productId })
+    });
+    
+    if (response.status === 401) {
+      window.location.href = "{{ url_for('auth_routes.login') }}";
+      return;
+    }
+    
+    const data = await response.json();
+    
+    if (data.status === 'success') {
+      const icon = btn.querySelector('i');
+      if (data.action === 'added') {
+        btn.classList.add('active');
+        icon.className = 'fas fa-heart text-danger';
+        showToast(data.message, 'fa-heart');
+      } else {
+        btn.classList.remove('active');
+        icon.className = 'far fa-heart';
+        showToast(data.message, 'fa-circle-info');
+      }
+    } else {
+      showToast(data.message || 'Error occurred', 'fa-circle-exclamation');
+    }
+  } catch (error) {
+    console.error('Wishlist error:', error);
+    showToast('Failed to sync with server', 'fa-wifi');
+  }
+}
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

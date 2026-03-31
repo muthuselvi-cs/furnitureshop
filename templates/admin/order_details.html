@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Order Details #{{ order.id }} | FurniWood{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <!-- Header & Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4" data-aos="fade-down">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_routes.dashboard') }}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_routes.orders') }}">Orders</a></li>
+            <li class="breadcrumb-item active">Order #{{ order.id }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-5" data-aos="fade-right">
+        <div>
+            <h2 class="fw-bold mb-1">Order #{{ order.id }}</h2>
+            <p class="text-muted small mb-0">Customer: {{ order.user_name }} ({{ order.email }})</p>
+        </div>
+        <div class="text-end">
+            <span class="badge rounded-pill px-4 py-2 fs-6 mb-1 
+                {% if order.payment_status == 'Paid' %}badge-paid{% else %}badge-cod{% endif %}">
+                Payment: {{ order.payment_status }}
+            </span>
+            <div class="text-muted small mt-1">Ordered on: {{ order.order_date }}</div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Column: Items List -->
+        <div class="col-lg-8" data-aos="fade-up">
+            <div class="admin-content-card">
+                <h5 class="fw-bold mb-4">Order Items</h5>
+                <div class="table-responsive">
+                    <table class="table admin-table mb-0">
+                        <thead style="background:var(--light-wood); color:var(--primary-wood);">
+                            <tr>
+                                <th style="color:var(--primary-wood); font-weight:700;">Product</th>
+                                <th style="color:var(--primary-wood); font-weight:700; text-align:center;">Price</th>
+                                <th style="color:var(--primary-wood); font-weight:700; text-align:center;">Qty</th>
+                                <th style="color:var(--primary-wood); font-weight:700; text-align:right;">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            {% set subtotal = item.price * item.quantity %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        {% if item.image %}
+                                        <img src="{{ item.image if item.image.startswith('http') else url_for('static', filename=item.image) }}" 
+                                             style="width:50px; height:50px; object-fit:cover; border-radius:8px;">
+                                        {% endif %}
+                                        <span class="fw-semibold">{{ item.product_name }}</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">Rs {{ "%.2f"|format(item.price|float) }}</td>
+                                <td class="text-center">{{ item.quantity }}</td>
+                                <td class="text-end fw-bold">Rs {{ "%.2f"|format(subtotal|float) }}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr style="background:var(--cream);">
+                                <td colspan="3" class="text-end fw-bold py-3 fs-5">Grand Total:</td>
+                                <td class="text-end fw-bold py-3 fs-5 text-accent">Rs {{ "%.2f"|format(order.total_amount|float) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Column: Management -->
+        <div class="col-lg-4" data-aos="fade-left">
+            <!-- Delivery Management -->
+            <div class="admin-content-card mb-4">
+                <h5 class="fw-bold mb-4">Order Status</h5>
+                <div class="mb-4">
+                    <div class="small text-muted mb-2">Current Status:</div>
+                    <span class="badge rounded-pill badge-info px-4 py-2 fs-6 w-100">
+                        {{ order.status_name }}
+                    </span>
+                </div>
+
+                <form action="{{ url_for('admin_routes.update_order_status', id=order.id) }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Update Status To:</label>
+                        <select name="status_id" class="form-select border-wood shadow-none h-auto py-2">
+                            {% for s in statuses %}
+                            <option value="{{ s.id }}" {% if s.id == order.delivery_status_id %}selected{% endif %}>
+                                {{ s.status_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-wood w-100 py-2">
+                        <i class="fas fa-save me-2"></i>Apply Status Change
+                    </button>
+                </form>
+            </div>
+
+            <!-- Shipping Address -->
+            <div class="admin-content-card">
+                <h5 class="fw-bold mb-3">Shipping Details</h5>
+                <div class="p-3 bg-light rounded text-muted small" style="line-height:1.6; border:1px dashed var(--accent-wood);">
+                    <i class="fas fa-location-dot me-2 text-accent"></i>{{ order.address }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

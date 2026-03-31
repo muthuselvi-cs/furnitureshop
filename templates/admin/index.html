@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login - Furniture Shop</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body {
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #6d4c41, #a1887f); /* Wood tones */
+}
+.login-card {
+    background: #d7ccc8;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    width: 400px;
+    text-align: center;
+    border: 2px solid #5d4037;
+}
+.login-card h2 {
+    color: #4e342e;
+    font-weight: 700;
+    margin-bottom: 25px;
+    letter-spacing: 1px;
+}
+.form-control {
+    background: #efebe9;
+    border: 1px solid #8d6e63;
+    color: #4e342e;
+}
+.form-control:focus {
+    background: #fff3e0;
+    border-color: #6d4c41;
+    box-shadow: none;
+    color: #4e342e;
+}
+.btn-login {
+    background: #6d4c41;
+    color: #fff;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+.btn-login:hover {
+    background: #5d4037;
+}
+.alert {
+    background: #d84315;
+    border: none;
+    color: #fff;
+    font-weight: 500;
+}
+.text-muted {
+    color: #5d4037 !important;
+    font-size: 0.85rem;
+}
+</style>
+</head>
+<body>
+
+<div class="login-card">
+    <h2>Admin Panel</h2>
+    {% if error %}
+        <div class="alert">{{ error }}</div>
+    {% endif %}
+    <form method="POST" action="{{ url_for('auth_routes.admin_login') }}">
+        <div class="mb-3">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control" required value="admin@furniture.com">
+        </div>
+        <div class="mb-3">
+            <label>Password</label>
+            <input type="password" name="password" class="form-control" required value="admin123">
+        </div>
+        <button type="submit" class="btn btn-login w-100">Login</button>
+    </form>
+    <div class="mt-3 text-center">
+        <small class="text-muted">Default: admin@furniture.com / admin123</small>
+    </div>
+</div>
+
+</body>
+</html>

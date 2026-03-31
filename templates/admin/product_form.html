@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}{% if product %}Edit Product{% else %}Add Product{% endif %} | FurniWood{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <div class="d-flex align-items-center gap-3 mb-4" data-aos="fade-right">
+                <a href="{{ url_for('admin_routes.products') }}" class="btn btn-wood-outline" style="width:42px;height:42px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold mb-0">{% if product %}Edit Furniture{% else %}Add New Furniture{% endif %}</h2>
+                    <p class="text-muted small mb-0">Product Details</p>
+                </div>
+            </div>
+
+            <div class="admin-content-card" data-aos="fade-up">
+                <form action="{% if product %}{{ url_for('admin_routes.edit_product', id=product.id) }}{% else %}{{ url_for('admin_routes.add_product') }}{% endif %}" 
+                      method="POST" enctype="multipart/form-data">
+                    
+                    <input type="hidden" name="existing_image" value="{% if product %}{{ product.image }}{% else %}images/placeholder.png{% endif %}">
+
+                    <div class="row g-4">
+
+                        <!-- Name -->
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold small">Product Name</label>
+                            <input type="text" name="name" class="form-control border-wood shadow-none" 
+                                   value="{% if product %}{{ product.name }}{% endif %}" required placeholder="e.g. Modern Teak Armchair">
+                        </div>
+
+                        <!-- Category -->
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Category</label>
+                            <select name="category_id" class="form-select border-wood shadow-none" required>
+                                <option value="" disabled {{ 'selected' if not product }}>Select Category</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.id }}" {{ 'selected' if product and product.category_id == cat.id }}>
+                                    {{ cat.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Price -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Price (Rs)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-wood text-white border-0">Rs</span>
+                                <input type="number" step="0.01" name="price" class="form-control border-wood shadow-none" 
+                                       value="{% if product %}{{ product.price }}{% endif %}" required placeholder="0.00">
+                            </div>
+                        </div>
+
+                        <!-- Stock -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Stock Quantity</label>
+                            <input type="number" name="stock" class="form-control border-wood shadow-none" 
+                                   value="{% if product %}{{ product.stock }}{% endif %}" required placeholder="0">
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">Product Image (JPG, PNG, JPEG)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-wood"><i class="fas fa-image text-muted"></i></span>
+                                <input type="file" name="image_file" class="form-control border-wood shadow-none" 
+                                       accept=".jpg,.jpeg,.png,.gif" onchange="previewImage(this)">
+                            </div>
+                            
+                            <div id="imagePreview" class="mt-3 {% if not product or not product.image %}d-none{% endif %}">
+                                <p class="small text-muted mb-2">Image Preview:</p>
+                                <img id="preview" 
+                                     src="{% if product and product.image %}{{ product.image if product.image.startswith('http') else url_for('static', filename=product.image) }}{% endif %}" 
+                                     class="img-thumbnail shadow-sm" style="max-height: 180px; border-radius: 12px;">
+                            </div>
+                            <div class="form-text text-muted smaller">Select a high-quality photo of your furniture.</div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">Description</label>
+                            <textarea name="description" class="form-control border-wood shadow-none" rows="4" 
+                                      placeholder="Describe the furniture's features and finish...">{% if product %}{{ product.description }}{% endif %}</textarea>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="col-12 mt-5">
+                            <hr class="mb-4" style="border-color:var(--light-wood);">
+                            <div class="d-flex gap-3 justify-content-end">
+                                <a href="{{ url_for('admin_routes.products') }}" class="btn btn-wood-outline px-4">Cancel</a>
+                                <button type="submit" class="btn btn-wood px-5">
+                                    <i class="fas fa-save me-2"></i>{% if product %}Update Product{% else %}Add Product{% endif %}
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                    
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% block scripts %}
+<script>
+function previewImage(input) {
+    const preview = document.getElementById('preview');
+    const container = document.getElementById('imagePreview');
+    
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        // Basic format check
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Please select a valid image file (JPG, PNG, GIF).');
+            input.value = '';
+            container.classList.add('d-none');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            container.classList.remove('d-none');
+        }
+        reader.readAsDataURL(file);
+    }
+}
+</script>
+{% endblock %}
+{% endblock %}
