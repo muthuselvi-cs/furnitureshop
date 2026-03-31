@@ -101,3 +101,19 @@ FurniWood follows a premium "Wood & Cream" aesthetic. It focuses on large whites
 
 ---
 *Developed as a professional e-commerce demonstration for high-end furniture retail.*
+
+## 📊 Admin Dashboard
+![Admin Dashboard](screenshots/10-admin-report.png)
+
+## 📦 Admin Product Page
+![Admin Products](screenshots/03-admin-product.png)
+
+## 🏠 User Home Page
+![User Home](screenshots/13-user-home.png)
+
+## 📦 Order Tracking
+![Tracking](screenshots/21-tracking.png)
+
+## 📸 More Screenshots
+
+Additional screenshots are available in the `screenshots/` folder.git add .
